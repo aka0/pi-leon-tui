@@ -1,0 +1,28 @@
+{
+  "name": "pi-leon-tui",
+  "version": "0.1.0",
+  "description": "A focused visual setup for Pi with session naming and a git-aware status footer.",
+  "keywords": ["pi-package", "pi-extension", "tui"],
+  "license": "MIT",
+  "type": "module",
+  "files": ["CHANGELOG.md", "index.ts", "LICENSE", "README.md", "src", "themes"],
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "pi": {
+    "extensions": ["./index.ts"],
+    "themes": ["./themes"]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-agent-core": "*",
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
