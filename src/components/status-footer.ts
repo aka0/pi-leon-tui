@@ -1,6 +1,6 @@
 import type { ReadonlyFooterDataProvider, ExtensionContext, SessionEntry, Theme } from "@earendil-works/pi-coding-agent";
 import type { Component, TUI } from "@earendil-works/pi-tui";
-import { visibleWidth } from "@earendil-works/pi-tui";
+import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import { GitStatusCache } from "../git.ts";
 import { deriveLocalTitle } from "../naming/title.ts";
 import { formatTitle, renderStatusLine, type StatusTheme } from "../format.ts";
@@ -48,7 +48,8 @@ export class StatusFooter implements Component {
       context: usage,
       cost: this.sessionCost(),
     }, width, this.theme as unknown as StatusTheme);
-    return [this.paint("toolPendingBg", line, width), summary];
+    const mcpLine = this.paint("toolPendingBg", this.formatMcpStatus(width), width);
+    return [this.paint("toolPendingBg", line, width), summary, mcpLine];
   }
 
   dispose(): void {
@@ -78,6 +79,17 @@ export class StatusFooter implements Component {
   private paintText(color: Parameters<Theme["fg"]>[0], text: string): string {
     return this.theme.fg(color, text);
   }
+
+  private formatMcpStatus(width: number): string {
+    const entries = Array.from(this.options.footerData.getExtensionStatuses().entries())
+      .filter(([key, text]) => /(^|[.:_-])mcp([.:_-]|$)/i.test(key) || /\bmcp\b/i.test(stripAnsi(text)))
+      .sort(([a], [b]) => a.localeCompare(b));
+
+    const raw = entries.length > 0
+      ? entries.map(([key, text]) => normalizeMcpStatus(key, text)).join(" · ")
+      : "mcp: no servers";
+    return this.theme.fg("dim", truncateToWidth(raw, width, "…"));
+  }
 }
 
 export function createStatusFooter(tui: TUI, theme: Theme, options: StatusFooterOptions): StatusFooter {
@@ -105,6 +117,23 @@ function getPiMode(footerData: ReadonlyFooterDataProvider): string {
   const status = footerData.getExtensionStatuses().get("mode");
   const match = status?.match(/mode:([^ (·\u001b]+)/i);
   return match?.[1] ?? "DEFAULT";
+}
+
+function normalizeMcpStatus(key: string, text: string): string {
+  const clean = sanitizeStatusText(stripAnsi(text));
+  if (/^mcp\b/i.test(clean)) return clean.replace(/^mcp\s*[:=-]?\s*/i, "mcp ");
+
+  const server = key.replace(/^(mcp|server)[.:_-]?/i, "").replace(/[.:_-]+/g, " ").trim();
+  const status = clean.replace(/^mcp\s*[:=-]?\s*/i, "");
+  return server ? `mcp ${server}: ${status}` : `mcp ${status}`;
+}
+
+function sanitizeStatusText(text: string): string {
+  return text.replace(/[\r\n\t]/g, " ").replace(/ +/g, " ").trim();
+}
+
+function stripAnsi(text: string): string {
+  return text.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, "");
 }
 
 function optionsTitle(context: ExtensionContext): string | undefined {

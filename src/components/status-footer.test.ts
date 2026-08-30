@@ -49,14 +49,24 @@ describe("status footer", () => {
     footer.dispose();
   });
 
-  it("renders the title and context bar", () => {
-    const footer = createStatusFooter(tui, theme, { context, footerData, git, getTitle: () => "A useful session title" });
+  it("renders the title, context bar, and mcp line", () => {
+    const mcpFooterData = {
+      onBranchChange: () => () => {},
+      getExtensionStatuses: () => new Map([
+        ["mode", "\u001b[36mmode:Plan (read-only)\u001b[0m"],
+        ["mcp.filesystem", "connected"],
+        ["mcp.github", "error"],
+      ]),
+    } as never;
+    const footer = createStatusFooter(tui, theme, { context, footerData: mcpFooterData, git, getTitle: () => "A useful session title" });
     const lines = footer.render(120).map(stripTerminalSequences);
     expect(lines[1]).toContain("A useful session title");
     expect(lines[0]).toContain("PLAN");
     expect(lines[0]).toContain("[██████····]");
     expect(lines[0]).toContain("61%");
     expect(lines[0]).toContain("$0.000");
+    expect(lines[2]).toContain("mcp filesystem: connected");
+    expect(lines[2]).toContain("mcp github: error");
     footer.dispose();
   });
 });
