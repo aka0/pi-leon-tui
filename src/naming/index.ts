@@ -38,8 +38,8 @@ export function registerSessionNaming(pi: ExtensionAPI): void {
       .then((name) => {
         if (name && token === sessionToken && !pi.getSessionName()) pi.setSessionName(name);
       })
-      .catch((error: unknown) => {
-        if (!abort.signal.aborted) console.warn("[pi-leon-tui] Session naming unavailable:", error instanceof Error ? error.message : String(error));
+      .catch(() => {
+        // Naming is best-effort; the footer can derive a local title from the prompt.
       })
       .finally(() => {
         if (token === sessionToken) {
