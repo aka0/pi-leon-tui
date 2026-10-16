@@ -14,7 +14,7 @@ export default function piLeonTui(pi: ExtensionAPI): void {
     if (ctx.mode !== "tui") return;
 
     const themeResult = ctx.ui.setTheme("leon");
-    if (!themeResult.success) console.warn(`[pi-leon-tui] Could not apply Leon theme: ${themeResult.error ?? "unknown error"}`);
+    if (!themeResult.success) ctx.ui.notify(`Could not apply Leon theme: ${themeResult.error ?? "unknown error"}`, "warning");
 
     activeGit?.dispose();
     const git = new GitStatusCache(createGitExecutor(pi), ctx.cwd);
