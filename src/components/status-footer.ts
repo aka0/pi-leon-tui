@@ -40,8 +40,8 @@ export class StatusFooter implements Component {
       contextWindow: this.options.context.model?.contextWindow ?? 0,
     };
     const line = renderStatusLine({
-      mode: getPiMode(this.options.footerData),
-      model: this.options.context.model?.id ?? "no-model",
+      mode: getPiMode(this.options.footerData, this.options.context),
+      model: displayModel(this.options.context),
       effort: this.options.context.thinkingLevel ?? "off",
       cwd: abbreviatePath(this.options.context.cwd),
       git: this.options.git.value,
@@ -113,10 +113,21 @@ function usageCost(usage: { cost?: { total?: number } } | undefined): number {
   return total !== undefined && Number.isFinite(total) && total >= 0 ? total : 0;
 }
 
-function getPiMode(footerData: ReadonlyFooterDataProvider): string {
+function getPiMode(footerData: ReadonlyFooterDataProvider, context: ExtensionContext): string {
   const status = footerData.getExtensionStatuses().get("mode");
   const match = status?.match(/mode:([^ (·\u001b]+)/i);
-  return match?.[1] ?? "DEFAULT";
+  return match?.[1] ?? (context.model?.provider === "dynamic" && context.model.id === "auto" ? "DYNAMIC" : "DEFAULT");
+}
+
+function displayModel(context: ExtensionContext): string {
+  const selected = context.model;
+  if (!selected) return "no-model";
+  if (selected.api !== "pi-virtual") return selected.id;
+  const last = [...context.sessionManager.getBranch()].reverse().find(
+    (entry) => entry.type === "message" && entry.message.role === "assistant" && entry.message.stopReason === "stop",
+  );
+  const routed = last?.type === "message" && last.message.role === "assistant" ? last.message.model : undefined;
+  return routed ? `${selected.id}→${routed}` : selected.id;
 }
 
 function normalizeMcpStatus(key: string, text: string): string {

@@ -49,6 +49,25 @@ describe("status footer", () => {
     footer.dispose();
   });
 
+  it("shows the dispatched model and DYNAMIC for a default virtual selection", () => {
+    const dynamicContext = {
+      ...(context as object),
+      model: { provider: "dynamic", id: "auto", api: "pi-virtual", contextWindow: 200_000 },
+      sessionManager: {
+        getLeafId: () => "leaf-1",
+        getBranch: () => [
+          { type: "message", message: { role: "assistant", provider: "openrouter", model: "openai/gpt-6-sol", stopReason: "stop" } },
+        ],
+      },
+    } as never;
+    const noMode = { onBranchChange: () => () => {}, getExtensionStatuses: () => new Map() } as never;
+    const footer = createStatusFooter(tui, theme, { context: dynamicContext, footerData: noMode, git, getTitle: () => "Investigation" });
+    const line = stripTerminalSequences(footer.render(120)[0]);
+    expect(line).toContain("DYNAMIC");
+    expect(line).toContain("auto→openai/gpt-6-sol");
+    footer.dispose();
+  });
+
   it("renders the title, context bar, and mcp line", () => {
     const mcpFooterData = {
       onBranchChange: () => () => {},
