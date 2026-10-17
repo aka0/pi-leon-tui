@@ -14,7 +14,7 @@ The naming flow uses the `phantom` provider and the cheapest configured text mod
 
 ## Footer
 
-The first line shows the Pi mode, model ID (without the redundant provider name), thinking effort, cwd, git/worktree state, both a context bar and numeric usage, and current session cost. The second line shows the session title.
+The first line shows the Pi mode, model ID (without the redundant provider name), thinking effort, cwd, git/worktree state, both a context bar and numeric usage, and current session cost. With the optional `dynamic/auto` virtual model selected, it shows `DYNAMIC` and the last physical model that answered (for example, `auto→openai/gpt-6-luna`). The second line shows the session title.
 
 Git metadata refreshes after completed turns and branch changes. Refreshes use a five-second cache and a two-second command timeout. A linked worktree is shown as `wt <name>`; dirty files, ahead/behind counts, and conflicts are shown when available.
 
